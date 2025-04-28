@@ -1,0 +1,9 @@
+{
+  "pass@1": 0.0472972972972973,
+  "model": "--data--yi--verl-tool--checkpoints--evaluation--mathcoder-fsdp_agent-qwen_qwen2.5-1.5b-grpo-n16-b128-t1.0-lr1e-6-420-step--main",
+  "split": "complete",
+  "subset": "hard",
+  "calibrated": true,
+  "gt_pass_rate": 1.0,
+  "failed_tasks": []
+}

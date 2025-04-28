@@ -135,10 +135,16 @@ def evaluate(
     no_gt: bool = False,
     **model_kwargs,
 ):  
+    
+    instruction_prefix = '''\
+A conversation between User and Assistant. The user asks a question, and the Assistant solves it. The assistant first thinks about the reasoning process in the mind and then provides the user with the answer. User: Please integrate natural language reasoning with programs to solve the problem above. For math problems, please put your final answer within \\boxed{}. For code problems, please put your final answer in a markdown code block like this: ```python\nyour code here\n```."'''
+
     if not samples and model_kwargs:
         samples = run_codegen(
             split=split,
             subset=subset,
+            instruction_prefix="",
+            response_prefix="",
             **model_kwargs,
         )
     
