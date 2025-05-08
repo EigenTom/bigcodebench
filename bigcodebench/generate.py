@@ -2,7 +2,7 @@ import os
 import json
 import argparse
 from typing import Optional, Tuple
-
+import re
 from bigcodebench.provider import DecoderBase, make_model
 from bigcodebench.data import get_bigcodebench, write_jsonl
 from bigcodebench.sanitize import sanitize
@@ -100,21 +100,41 @@ def codegen(
                 )
                 assert outputs, "No outputs from model!"
                 
+                num_tool_calls = 0
+                
                 samples = []
                 for task_id, content, entry_point, nsamples, task_outputs in zip(batch_task_ids, batch_prompts, batch_entry_points, batch_nsamples, outputs):
+                    
+                    curr_task_outputs = task_outputs[:nsamples]
+                    
                     if model.is_direct_completion():
                         samples.extend([
                             dict(task_id=task_id, solution=sanitize(content+completion, entry_point), raw_solution=content+completion)
-                            for completion in task_outputs[:nsamples]
+                            for completion in curr_task_outputs
                         ])
                     else:
                         samples.extend([
                             dict(task_id=task_id, solution=sanitize(completion, entry_point), raw_solution=completion)
-                            for completion in task_outputs[:nsamples]
+                            for completion in curr_task_outputs
                         ])
 
+                
                 print(f"Generated {len(samples)} samples")
                 write_jsonl(target_path, samples, append=True)
+                
+                for sample in samples:
+                    # match "```output" in each raw code
+                    pattern = re.compile(r"```output", re.DOTALL)
+                    matches = pattern.findall(sample["raw_solution"])
+                    if matches:
+                        num_tool_calls += len(matches)
+                avg_tool_calls = num_tool_calls / len(samples)
+                
+                stat_txt_path = target_path.replace("sanitized_calibrated.jsonl", "stat.txt")
+                with open(stat_txt_path, "a") as f:
+                    f.write(f"Total number of samples: {len(samples)}\n")
+                    f.write(f"Total number of tool calls: {num_tool_calls}\n")
+                    f.write(f"Average number of tool calls: {avg_tool_calls}\n")
             
                 # Clear batches
                 batch_prompts = []
@@ -193,7 +213,7 @@ def run_codegen(
         trust_remote_code=trust_remote_code,
         direct_completion=direct_completion,
         tokenizer_name=tokenizer_name,
-        tokenizer_legacy=tokenizer_legacy
+        tokenizer_legacy=tokenizer_legacy,
     )
     
     extra = "-" + subset if subset != "full" else ""
@@ -226,7 +246,7 @@ def run_codegen(
         n_samples=n_samples,
         resume=resume,
         id_range=id_range,
-        batch_size=bs
+        batch_size=bs,
     )
 
     return target_path

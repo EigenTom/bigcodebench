@@ -180,6 +180,18 @@ def extract_target_code_or_empty(code: str, entrypoint: Optional[str] = None) ->
 
 
 def sanitize(code: str, entrypoint: Optional[str] = None) -> str:
+    
+    # perform regex-based sanitization
+    import re
+    # perform post-processing
+    pattern = r"```python(.*?)```"
+    matches = re.findall(pattern, code, re.DOTALL)            
+    # if matches:
+    #     last_code_block = matches[-1]
+    #     code = "```python" + last_code_block + "```"
+    # else:
+    #     pass
+    
     sanitized_code = extract_target_code_or_empty(code, entrypoint).strip()
     if not sanitized_code:
         return code_extract(code)

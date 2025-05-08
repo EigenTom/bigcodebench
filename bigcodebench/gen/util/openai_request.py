@@ -23,14 +23,9 @@ def make_request(
         kwargs.pop("temperature")
         kwargs["reasoning_effort"] = reasoning_effort
     
-    system_prompt = '''\
-A conversation between User and Assistant. The user asks a question, and the Assistant solves it. The assistant first thinks about the reasoning process in the mind and then provides the user with the answer. User: Please integrate natural language reasoning with programs to solve the problem above. For math problems, please put your final answer within \\boxed{}. For code problems, please put your final answer in a markdown code block like this: ```python\nyour code here\n```."'''
-
-    
     return client.chat.completions.create(
         model=model,
         messages=[
-            {"role": "system", "content": system_prompt},
             {"role": "user", "content": message},
         ],
         n=n,
